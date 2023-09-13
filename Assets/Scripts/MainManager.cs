@@ -11,11 +11,14 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text bestScore;
     public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
-    
+    private int m_BestScore;
+    private string m_playerName;
+
     private bool m_GameOver = false;
 
     
@@ -35,6 +38,14 @@ public class MainManager : MonoBehaviour
                 brick.PointValue = pointCountArray[i];
                 brick.onDestroyed.AddListener(AddPoint);
             }
+        }
+
+        if (GameManager.Instance != null)
+        {
+            m_BestScore = GameManager.Instance.BestScore;
+            m_playerName = GameManager.Instance.PlayerName;
+            ScoreText.text = $"{m_playerName}'s Score : {m_Points}";
+            bestScore.text = $"Best Score : {GameManager.Instance.BestPlayerName} : {m_BestScore}";
         }
     }
 
@@ -65,12 +76,32 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"{m_playerName}'s Score : {m_Points}";
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        //Check for best score
+        UpdateBestScore();
+    }
+
+    public void Exit()
+    {
+        UpdateBestScore();
+        SceneManager.LoadScene(0);
+    }
+
+    private void UpdateBestScore()
+    {
+        if (GameManager.Instance != null && m_Points > m_BestScore)
+        {
+            m_BestScore = m_Points;
+            GameManager.Instance.BestScore = m_BestScore;
+            GameManager.Instance.BestPlayerName = m_playerName;
+            GameManager.Instance.SaveBestPlayer();
+            bestScore.text = $"Best Score : {GameManager.Instance.BestPlayerName} : {m_BestScore}";
+        }
     }
 }
